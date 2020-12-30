@@ -14,40 +14,37 @@
             <i class="el-icon-menu"></i>
             <span slot="title">首页</span>
           </el-menu-item>
-          <el-submenu index="2">
-            <template slot="title">
-              <i class="el-icon-s-tools"></i>
-              <span>系统设置</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="menu">菜单管理</el-menu-item>
-              <el-menu-item index="role">角色管理</el-menu-item>
-              <el-menu-item index="manage">管理员管理</el-menu-item>
-            </el-menu-item-group>
-          </el-submenu>
-          <el-submenu index="3">
-            <template slot="title">
-              <i class="el-icon-s-goods"></i>
-              <span>商城管理</span>
-            </template>
-            <el-menu-item-group>
-              <el-menu-item index="cate">商品分类</el-menu-item>
-              <el-menu-item index="specs">商品规格</el-menu-item>
-              <el-menu-item index="goods">商品管理</el-menu-item>
-              <el-menu-item index="member">会员管理</el-menu-item>
-              <el-menu-item index="banner">轮播图管理</el-menu-item>
-              <el-menu-item index="speckill">秒杀活动</el-menu-item>
-            </el-menu-item-group>
-          </el-submenu>
+          <!-- ------------- -->
+          <div v-for="item in user.menus" :key="item.id">
+            <el-menu-item v-if="!item.children" :index="item.url">
+              {{ item.title }}
+            </el-menu-item>
+            <el-submenu :index="item.id + ''" v-if="item.children">
+              <template slot="title">
+                <i :class="item.icon"></i>
+                <span>{{ item.title }}</span>
+              </template>
+              <el-menu-item-group>
+                <el-menu-item
+                  v-for="i in item.children"
+                  :key="i.id"
+                  :index="i.url"
+                  >{{ i.title }}</el-menu-item
+                >
+              </el-menu-item-group>
+            </el-submenu>
+          </div>
+          <!-- -------------------- -->
         </el-menu>
       </el-aside>
       <!--头像  -->
       <el-container>
         <el-header>
           <div class="username">
-            
-            <h4>用户名:{{ username }}</h4>
-            <el-button type="info" @click="gologin" size="mini">退出登录</el-button>
+            <h4>用户名:{{ user.username }}</h4>
+            <el-button type="info" @click="gologin" size="mini"
+              >退出登录</el-button
+            >
           </div>
         </el-header>
         <el-main height="600px">
@@ -65,20 +62,25 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
 export default {
   data() {
     return {
-      username: "",
+      user: [],
     };
   },
   methods: {
+    ...mapActions({
+      changUser: "changeUser",
+    }),
     getusername() {
-      this.username = JSON.parse(localStorage.getItem("usertitle"));
+      this.user = JSON.parse(sessionStorage.getItem("userInfo"));
     },
-    gologin(){
-      localStorage.clear("usertitle")
-      this.$router.push("/login")
-    }
+    gologin() {
+      this.changUser({});
+
+      this.$router.push("/login");
+    },
   },
   mounted() {
     this.getusername();
@@ -115,10 +117,10 @@ body > .el-container {
   color: #999;
   float: right;
 }
-.username h4{
+.username h4 {
   display: inline;
 }
-.username .el-button{
+.username .el-button {
   display: inline-block;
 }
 </style>

@@ -37,7 +37,7 @@
         </el-form-item>
         <!-- ||||||||||||看页面数据||||||||||| -->
         <!-- 页面user -->
-        {{ user }}
+        <!-- {{ user }} -->
         <el-button v-if="info.isadd" @click="add">添加</el-button>
         <el-button type="primary" v-else @click="edit">修改</el-button>
         <!-- ||||||||||||||||||||||||||| -->

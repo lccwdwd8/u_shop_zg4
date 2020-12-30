@@ -25,7 +25,7 @@
           <el-input v-model="user.catename"></el-input>
         </el-form-item>
         <!--  -->
-        <el-form-item label="图片">
+        <el-form-item label="图片" v-if="user.pid===0?false:true">
           <el-upload
             class="avatar-uploader"
             action="#"
@@ -46,7 +46,7 @@
         </el-form-item>
         <!-- ||||||||||||看页面数据||||||||||| -->
         <!-- 页面user -->
-        {{ user }}
+        <!-- {{ user }} -->
         <el-button type="primary" @click="add" v-if="info.isadd"
           >添加</el-button
         >
@@ -116,6 +116,7 @@ export default {
           this.cancel();
 
           // this.$emit("init");
+          this.reqList()
         }
       });
     },

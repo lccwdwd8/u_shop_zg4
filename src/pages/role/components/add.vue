@@ -12,7 +12,7 @@
           <el-input v-model="user.rolename"></el-input>
         </el-form-item>
         <el-tree
-          :data="data"
+          :data="data" 
           show-checkbox
           check-on-click-node
           default-expand-all
@@ -45,6 +45,7 @@
 </template>
 
 <script>
+import {mapActions,mapGetters} from "vuex"
 import { sucalert } from "../../../utils/alert";
 import {
   reqRoleAdd,
@@ -68,8 +69,15 @@ export default {
       },
     };
   },
-
+  computed:{
+    ...mapGetters({
+      userInfo:"userInfo"
+    })
+  },
   methods: {
+    ...mapActions({
+      changeUser:"changeUser"
+    }),
     //在此处将menus转为字符串数组
     getCheckedKeys() {
       console.log(this.$refs.tree.getCheckedKeys());
@@ -142,13 +150,23 @@ export default {
         if (res.data.code === 200) {
           sucalert(res.data.msg);
 
+          if(this.user.id == this.userInfo.roleid){
+            this.changeUser({})
+            this.$router.push("/login")
+            return
+          }
+
           this.cancel();
 
           this.$emit("init");
         }
       });
     },
+    
   },
+  mounted(){
+    
+  }
 };
 </script>
 

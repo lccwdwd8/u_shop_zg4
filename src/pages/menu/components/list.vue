@@ -4,7 +4,7 @@
       :data="list"
       style="width: 100%; margin-bottom: 20px"
       row-key="id"
-      height="600px"
+      height="500px"
       border
       default-expand-all
       :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"

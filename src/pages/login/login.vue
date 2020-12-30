@@ -25,6 +25,7 @@
 </template>
 
 <script>
+import {mapActions} from "vuex"
 import { reqUserLogin } from "../../utils/http";
 export default {
   data() {
@@ -36,14 +37,14 @@ export default {
     };
   },
   methods: {
+    ...mapActions({
+      changeUser:"changeUser"
+    }),
     login() {
       reqUserLogin(this.user).then((res) => {
         if (res.data.code === 200) {
-          localStorage.setItem(
-            "usertitle",
-            JSON.parse(res.data.list.username)
-          );
-
+          this.changeUser(res.data.list)
+          
           this.$router.push("/");
         }
       });

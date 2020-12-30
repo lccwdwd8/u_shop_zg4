@@ -1,160 +1,164 @@
 <template>
   <div>
-      <el-dialog :title="info.isadd?'添加规格':'编辑规格'" :visible.sync="info.isshow" @closed="cancel">
+    <el-dialog
+      :title="info.isadd ? '添加规格' : '编辑规格'"
+      :visible.sync="info.isshow"
+      @closed="cancel"
+    >
       <!-- 14.数据绑定到页面 -->
-     
+
       <el-form :model="user">
-        <div>
-          user:{{user}}
-        </div>
-        <div>
-          attrsArr:{{attrsArr}}
-        </div>
+        <!-- <div>user:{{ user }}</div>
+        <div>attrsArr:{{ attrsArr }}</div> -->
         <el-form-item label="规格名称" label-width="100px">
           <el-input v-model="user.specsname"></el-input>
         </el-form-item>
-        <el-form-item label="规格属性" label-width="100px"
-        v-for="(item,index) in attrsArr"
-        :key="index"
+        <el-form-item
+          label="规格属性"
+          label-width="100px"
+          v-for="(item, index) in attrsArr"
+          :key="index"
         >
           <div class="line">
             <el-input class="line-ipt" v-model="item.value"></el-input>
-            <el-button type="primary" class="line-btn" v-if="index==0" @click="addAttr">新增规格属性</el-button>
-            <el-button type="danger" class="line-btn" v-else @click="delAttr(index)">删除</el-button>
+            <el-button
+              type="primary"
+              class="line-btn"
+              v-if="index == 0"
+              @click="addAttr"
+              >新增规格属性</el-button
+            >
+            <el-button
+              type="danger"
+              class="line-btn"
+              v-else
+              @click="delAttr(index)"
+              >删除</el-button
+            >
           </div>
         </el-form-item>
 
-        
-
         <el-form-item label="状态" label-width="100px">
-          <el-switch v-model="user.status" :active-value="1" :inactive-value="2"></el-switch>
+          <el-switch
+            v-model="user.status"
+            :active-value="1"
+            :inactive-value="2"
+          ></el-switch>
         </el-form-item>
       </el-form>
 
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.isadd">添 加</el-button>
+        <el-button type="primary" @click="add" v-if="info.isadd"
+          >添 加</el-button
+        >
         <el-button type="primary" @click="update" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
-  <script>
+
+<script>
+import { sucalert } from "../../../utils/alert";
+import { reqspecsAdd, reqspecsDetail,reqspecsUpdate } from "../../../utils/http";
 import { mapActions, mapGetters } from "vuex";
-import { reqspecsAdd, reqspecsDetail, reqspecsUpdate } from '../../../utils/http';
-import { sucalert } from '../../../utils/alert';
 export default {
-  props:["info"],
+  props: ["info"],
   data() {
     return {
-      user:{
-        specsname:"",
-        attrs:"[]",
-        status:1
+      user: {
+        specsname: "",
+        attrs: "",
+        status: 1,
       },
-      attrsArr:[
-        {value:""}
-      ]
+      attrsArr: [{ value: "" }],
     };
   },
   computed: {
-    ...mapGetters({
-      
-    })
+    ...mapGetters({}),
   },
   methods: {
     ...mapActions({
-      reqList: "specs/reqList",
-       reqTotal:"specs/reqTotal",
+      reqlist: "specs/reqList",
+
+      reqtotal: "specs/reqTotal",
     }),
-    //取消
-    cancel(){
+    //添加
+    add() {
+      this.user.attrs = JSON.stringify(this.attrsArr.map((item) => item.value));
+
+      console.log(this.user.attrs);
+      reqspecsAdd(this.user).then((res) => {
+        if (res.data.code === 200) {
+          sucalert(res.data.msg);
+
+          this.empty();
+
+          this.cancel();
+
+          this.reqlist();
+
+          this.reqtotal();
+        }
+      });
+    },
+    //删除
+    delAttr(index) {
+      this.attrsArr.splice(index, 1);
+    },
+    //添加数组
+    addAttr() {
+      this.attrsArr.push({ value: "" });
+    },
+    // 取消
+    cancel() {
       if(!this.info.isadd){
         this.empty()
       }
-      this.info.isshow=false;
+      this.info.isshow = false;
     },
-    //新增属性
-    addAttr(){
-      this.attrsArr.push({value:""})
+    // 清空
+    empty() {
+      (this.user = {
+        specsname: "",
+        attrs: "",
+        status: 1,
+      }),
+        (this.attrsArr = [{ value: "" }]);
     },
-    //删除属性
-    delAttr(index){
-      this.attrsArr.splice(index,1)
-    },
-    //清空
-    empty(){
-      this.user={
-        specsname:"",
-        attrs:"[]",
-        status:1
-      };
-      this.attrsArr=[
-        {value:""}
-      ]
-    },
-    //点了添加
-    add(){
-      //attrsArr:[ { "value": "s" }, { "value": "m" }, { "value": "l" } ] 
-      //user.attrs='["s","m","l"]'
-      this.user.attrs=JSON.stringify(this.attrsArr.map(item=>item.value))
-      //发请求
-      reqspecsAdd(this.user).then(res=>{
-        if(res.data.code==200){
-          //1.弹框消失
-          this.cancel()
-          //2.数据清空
-          this.empty()
-          //3.弹成功
-          sucalert(res.data.msg)
-          //4.刷新list
-          this.reqList()
-          this.reqTotal()
-        }
-      })
-    },
-    //获取一条数据
-    getOne(id){
-      reqspecsDetail({id:id}).then(res=>{
-        if(res.data.code==200){
-          this.user=res.data.list[0]
-          //user.attrs=attrs": "[\"红色\"", "\"绿色\"", "\"黄色\"]" 
-          this.user.attrs=JSON.parse(this.user.attrs);//['红色','绿色','黄色']
-          //attrsArr=[{value:"红色"},{value:"绿色"},{value:"黄色"}]
-          this.attrsArr=this.user.attrs.map(item=>({value:item}))
+    getone(id) {
+      reqspecsDetail({ id: id }).then((res) => {
+        if (res.data.code === 200) {
+          this.user = res.data.list[0];
 
+          this.user.attrs = JSON.parse(this.user.attrs);
+
+          this.attrsArr = this.user.attrs.map((item) => ({ value: item }));
         }
-      })
+      });
     },
-    //修改
-    update(){
-      this.user.attrs=JSON.stringify(this.attrsArr.map(item=>item.value))
+    //更新
+    update() {
+      this.user.attrs = JSON.stringify(this.attrsArr.map(item=>item.value))
       reqspecsUpdate(this.user).then(res=>{
-         if(res.data.code==200){
-          //1.弹框消失
-          this.cancel()
-          //2.数据清空
+        if(res.data.code===200){
           this.empty()
-          //3.弹成功
+
+          this.cancel()
+
           sucalert(res.data.msg)
-          //4.刷新list
-          this.reqList()
+
+          this.reqlist()
         }
       })
-    }
+
+    },
   },
-  mounted() {}
 };
 </script>
 
 <style scoped>
-.line{
+.line {
   display: flex;
-}
-.line-btn{
-  width: auto;
-}
-.line-ipt{
-  flex: 1;
 }
 </style>

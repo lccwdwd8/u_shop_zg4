@@ -28,7 +28,7 @@
         </el-form-item>
         <!-- ||||||||||||看页面数据||||||||||| -->
         <!-- 页面user -->
-        {{ user }}
+        <!-- {{ user }} -->
         <el-button type="primary" @click="edit">修改</el-button>
         <!-- ||||||||||||||||||||||||||| -->
       </el-form>

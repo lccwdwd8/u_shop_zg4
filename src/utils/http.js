@@ -6,10 +6,19 @@ import { warnalert } from "./alert";
 let baseUrl = "/api"
 Vue.prototype.$pre = "http://localhost:3000"
 
-
+import store from "../store"
+import router from "../router";
 //生产环境
 // let baseUrl = ""
 // Vue.prototype.$pre = ""
+
+
+axios.interceptors.request.use(config => {
+    if (config.url !== baseUrl + "/api/userlogin") {
+        config.headers.authorization = store.state.userInfo.token
+    }
+    return config
+})
 
 axios.interceptors.response.use(res => {
     console.group("本次请求的地址是" + res.config.url)
@@ -21,8 +30,15 @@ axios.interceptors.response.use(res => {
     if (!res.data.list) {
         res.data.list = []
     }
+    if(res.data.msg==="登录已过期或访问受限"){
+        store.dispatch("changeUser",{})
+
+        router.push("/login")
+    }
     return res
 })
+
+
 
 function dataToFormData(user) {
     let data = new FormData()
@@ -387,7 +403,7 @@ export let reqgoodsAdd = (user) => {
 export let reqgoodslist = (p) => {
     return axios({
         url: baseUrl + "/api/goodslist",
-        params:p
+        params: p
     })
 }
 
@@ -419,10 +435,51 @@ export let reqgoodsDel = (user) => {
 }
 
 //总数
-export let reqgoodsCount=()=>{
+export let reqgoodsCount = () => {
     return axios({
-        url:baseUrl+"/api/goodscount"
+        url: baseUrl + "/api/goodscount"
     })
 }
 
 /************商品管理 end**************************/
+
+// 秒杀
+
+export let speckilladd = (obj) => {
+    return axios({
+        url: baseUrl + "/api/seckadd",
+        method: "post",
+        data: qs.stringify(obj)
+    })
+}
+
+export let specklist = () => {
+    return axios({
+        url: baseUrl + "/api/secklist",
+    })
+}
+// {id:id}
+export let speckinfo = (id) => {
+    return axios({
+        url: baseUrl + "/api/seckinfo",
+        params: id
+    })
+}
+
+export let speckedit = (obj) => {
+    return axios({
+        url: baseUrl + "/api/seckedit",
+        method: "post",
+        data: qs.stringify(obj)
+    })
+}
+
+
+export let speckdel = (id) => {
+    return axios({
+        url: baseUrl + "/api/seckdelete",
+        method: "post",
+        data: qs.stringify(id)
+    })
+}
+
