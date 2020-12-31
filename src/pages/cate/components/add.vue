@@ -25,7 +25,7 @@
           <el-input v-model="user.catename"></el-input>
         </el-form-item>
         <!--  -->
-        <el-form-item label="图片" v-if="user.pid===0?false:true">
+        <el-form-item label="图片" v-if="user.pid === 0 ? false : true">
           <el-upload
             class="avatar-uploader"
             action="#"
@@ -59,7 +59,7 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
-import { sucalert } from "../../../utils/alert";
+import { sucalert,warnalert } from "../../../utils/alert";
 import { reqcateadd, reqcatedetail, reqcateedit } from "../../../utils/http";
 export default {
   props: ["info"],
@@ -81,6 +81,24 @@ export default {
     }),
   },
   methods: {
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.pid === "") {
+          warnalert("上级分类不能为空");
+          return;
+        }
+        if (this.user.catename === "") {
+          warnalert("分类名称不能为空");
+          return;
+        }
+
+        if (!this.user.img) {
+          warnalert("未上传图片");
+          return;
+        }
+        resolve();
+      });
+    },
     ...mapActions({
       reqList: "cate/reqList",
     }),
@@ -107,17 +125,19 @@ export default {
       this.user.img = file;
     },
     add() {
-      reqcateadd(this.user).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+      this.checkProps().then(() => {
+        reqcateadd(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-          this.empty();
+            this.empty();
 
-          this.cancel();
+            this.cancel();
 
-          // this.$emit("init");
-          this.reqList()
-        }
+            // this.$emit("init");
+            this.reqList();
+          }
+        });
       });
     },
     getOne(id) {

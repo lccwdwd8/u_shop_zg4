@@ -14,7 +14,7 @@
             <el-option
               v-for="item in role"
               :key="item.id"
-              :label="item.rolename" 
+              :label="item.rolename"
               :value="item.id"
             ></el-option>
           </el-select>
@@ -47,8 +47,13 @@
 </template>
 
 <script>
-import { sucalert } from "../../../utils/alert";
-import { reqRolelist, reqUserAdd,reqUserInfo,reqUseradit } from "../../../utils/http";
+import { sucalert,warnalert } from "../../../utils/alert";
+import {
+  reqRolelist,
+  reqUserAdd,
+  reqUserInfo,
+  reqUseradit,
+} from "../../../utils/http";
 export default {
   props: ["info"],
   data() {
@@ -63,9 +68,27 @@ export default {
     };
   },
   methods: {
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.roleid === "") {
+          warnalert("所属角色不能为空");
+          return;
+        }
+
+        if (this.user.username === "") {
+          warnalert("用户名不能为空");
+          return;
+        }
+        if (this.user.password === "") {
+          warnalert("密码不能为空");
+          return;
+        }
+        resolve();
+      });
+    },
     cancel() {
-      if(!this.info.isadd){
-        this.empty()
+      if (!this.info.isadd) {
+        this.empty();
       }
       this.info.isshow = false;
     },
@@ -78,39 +101,43 @@ export default {
       };
     },
     add() {
-      reqUserAdd(this.user).then((res) => {
+      this.checkProps().then(() => {
+        reqUserAdd(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
+
+            this.empty();
+
+            this.cancel();
+
+            this.$emit("init");
+          }
+        });
+      });
+    },
+    getone(id) {
+      reqUserInfo({ uid: id }).then((res) => {
         if (res.data.code === 200) {
-          sucalert(res.data.msg);
+          this.user = res.data.list;
 
-          this.empty()
-
-          this.cancel()
-
-          this.$emit("init")
+          this.user.password = "";
         }
       });
     },
-    getone(id){
-      reqUserInfo({uid:id}).then(res=>{
-        if(res.data.code ===200){
-          this.user  = res.data.list
-
-          this.user.password = ""
-        }
-      })
-    },
-    edit(){
+    edit() {
       // console.log(this.user)
-        reqUseradit(this.user).then(res=>{
-            if(res.data.code ===200){
-              sucalert(res.data.msg)
+      this.checkProps().then((res) => {
+        reqUseradit(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-              this.cancel()
+            this.cancel();
 
-              this.$emit("init")
-            }
-        })
-    }
+            this.$emit("init");
+          }
+        });
+      });
+    },
   },
   mounted() {
     reqRolelist().then((res) => {

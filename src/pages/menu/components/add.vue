@@ -68,7 +68,7 @@
 </template>
 
 <script>
-import { sucalert } from "../../../utils/alert";
+import { sucalert, warnalert } from "../../../utils/alert";
 import { reqMenuAdd, reqMenuDetail, initMenuList } from "../../../utils/http";
 import { indexRouters } from "../../../router";
 export default {
@@ -95,11 +95,24 @@ export default {
     };
   },
   methods: {
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.title === "") {
+          warnalert("菜单名称不能为空");
+          return;
+        }
 
+        if (this.user.icon === "" && this.user.url === "") {
+          warnalert("请选择菜单名称或地址");
+          return;
+        }
+        resolve();
+      });
+    },
     cancel() {
-      if(!this.info.isadd){
-        this.empty()
-      }  
+      if (!this.info.isadd) {
+        this.empty();
+      }
       this.info.isshow = false;
     },
     empty() {
@@ -113,18 +126,20 @@ export default {
       };
     },
     add() {
-      reqMenuAdd(this.user).then((res) => {
-        console.log(res);
-        if (res.data.code === 200) {
-          //弹出提示
-          sucalert(res.data.msg);
+      this.checkProps().then(() => {
+        reqMenuAdd(this.user).then((res) => {
+          console.log(res);
+          if (res.data.code === 200) {
+            //弹出提示
+            sucalert(res.data.msg);
 
-          this.cancel();
+            this.cancel();
 
-          this.empty();
+            this.empty();
 
-          this.$emit("init");
-        }
+            this.$emit("init");
+          }
+        });
       });
     },
     changeType() {
@@ -145,16 +160,18 @@ export default {
       });
     },
     edit() {
-      initMenuList(this.user).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+      this.checkProps().then(() => {
+        initMenuList(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-          this.cancel();
+            this.cancel();
 
-          this.empty();
+            this.empty();
 
-          this.$emit("init");
-        }
+            this.$emit("init");
+          }
+        });
       });
     },
   },

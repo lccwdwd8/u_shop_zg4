@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { sucalert } from "../../../utils/alert";
+import { sucalert, warnalert } from "../../../utils/alert";
 import {
   reqbanneradd,
   reqbannerinfo,
@@ -64,6 +64,20 @@ export default {
     };
   },
   methods: {
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.title === "") {
+          warnalert("标题不能为空");
+          return;
+        }
+
+        if (!this.user.img) {
+          warnalert("未上传图片");
+          return;
+        }
+        resolve();
+      });
+    },
     //改变图片路径时触发
     changeImg(e) {
       let file = e.raw;
@@ -72,34 +86,38 @@ export default {
     },
     //添加
     add() {
-      reqbanneradd(this.user).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+      this.checkProps().then(() => {
+        reqbanneradd(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-          this.empty();
+            this.empty();
 
-          this.cancel();
+            this.cancel();
 
-          this.$emit("init");
-        }
+            this.$emit("init");
+          }
+        });
       });
     },
     //修改
     update() {
-      reqbanneredit(this.user).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+      this.checkProps().then(() => {
+        reqbanneredit(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-        //   this.empty();
+            //   this.empty();
 
-          this.cancel();
+            this.cancel();
 
-          this.$emit("init");
-        }
+            this.$emit("init");
+          }
+        });
       });
     },
     cancel() {
-        console.log(this.info.isadd)
+      console.log(this.info.isadd);
       if (!this.info.isadd) {
         this.empty();
       }

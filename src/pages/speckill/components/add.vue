@@ -8,7 +8,7 @@
       <!-- 2.v-model绑定user -->
       <el-form :model="user">
         <!-- <div>user:{{ user }}</div> -->
-        <div>value1:{{ value }}</div>
+        <!-- <div>value1:{{ value }}</div> -->
         <!-- top1 -->
         <el-form-item label="活动名称" label-width="100px">
           <el-input v-model="user.title"></el-input>
@@ -78,7 +78,7 @@
 </template>
   <script>
 import { mapActions, mapGetters } from "vuex";
-import { sucalert } from "../../../utils/alert";
+import { sucalert,warnalert } from "../../../utils/alert";
 import {
   reqcatelist,
   reqgoodslist,
@@ -113,6 +113,34 @@ export default {
     }),
   },
   methods: {
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.title === "") {
+          warnalert("活动名称不能为空");
+          return;
+        }
+
+        if (!this.value) {
+          warnalert("请选择活动期限");
+          return;
+        }
+
+        if (this.user.first_cateid === "") {
+          warnalert("一级分类不能为空");
+          return;
+        }
+        if (this.user.second_cateid === "") {
+          warnalert("二级分类不能为空");
+          return;
+        }
+        if (this.user.goodsid === "") {
+          warnalert("商品名称不能为空");
+          return;
+        }
+
+        resolve();
+      });
+    },
     //
     ...mapActions({
       reqCateList: "cate/reqList",
@@ -169,20 +197,22 @@ export default {
       this.value = [];
     },
     add() {
-      this.user.begintime = this.value[0];
+      this.checkProps().then(() => {
+        this.user.begintime = this.value[0];
 
-      this.user.endtime = this.value[1];
+        this.user.endtime = this.value[1];
 
-      speckilladd(this.user).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+        speckilladd(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-          this.empty();
+            this.empty();
 
-          this.cancel();
+            this.cancel();
 
-          this.$emit("init");
-        }
+            this.$emit("init");
+          }
+        });
       });
     },
     getone(id) {
@@ -201,18 +231,20 @@ export default {
       });
     },
     update() {
-      this.user.begintime = this.value[0];
+      this.checkProps().then(() => {
+        this.user.begintime = this.value[0];
 
-      this.user.endtime = this.value[1];
+        this.user.endtime = this.value[1];
 
-      speckedit(this.user).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+        speckedit(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-          this.empty();
-          this.cancel();
-          this.$emit("init");
-        }
+            this.empty();
+            this.cancel();
+            this.$emit("init");
+          }
+        });
       });
     },
   },

@@ -12,7 +12,7 @@
           <el-input v-model="user.rolename"></el-input>
         </el-form-item>
         <el-tree
-          :data="data" 
+          :data="data"
           show-checkbox
           check-on-click-node
           default-expand-all
@@ -45,8 +45,8 @@
 </template>
 
 <script>
-import {mapActions,mapGetters} from "vuex"
-import { sucalert } from "../../../utils/alert";
+import { mapActions, mapGetters } from "vuex";
+import { sucalert, warnalert } from "../../../utils/alert";
 import {
   reqRoleAdd,
   reqRoleinfo,
@@ -54,7 +54,7 @@ import {
   reqMenuList,
 } from "../../../utils/http";
 export default {
-  props: ["info","data"],
+  props: ["info", "data"],
   data() {
     return {
       // data: [],
@@ -69,14 +69,28 @@ export default {
       },
     };
   },
-  computed:{
+  computed: {
     ...mapGetters({
-      userInfo:"userInfo"
-    })
+      userInfo: "userInfo",
+    }),
   },
   methods: {
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.rolename === "") {
+          warnalert("角色名称不能为空");
+          return;
+        }
+
+        if (this.user.menus === "[]") {
+          warnalert("未选择角色权限");
+          return;
+        }
+        resolve();
+      });
+    },
     ...mapActions({
-      changeUser:"changeUser"
+      changeUser: "changeUser",
     }),
     //在此处将menus转为字符串数组
     getCheckedKeys() {
@@ -86,20 +100,22 @@ export default {
     },
     //添加
     add() {
+      this.user.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
       //先调用将user数组转为数组字符串
-     this.user.menus = JSON.stringify(this.$refs.tree.getCheckedKeys())
+      console.log(this.user)
+      this.checkProps().then(() => {
+        reqRoleAdd(this.user).then((res) => {
+          console.log(res);
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-      reqRoleAdd(this.user).then((res) => {
-        console.log(res);
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+            this.cancel();
 
-          this.cancel();
+            this.empty();
 
-          this.empty();
-
-          this.$emit("init");
-        }
+            this.$emit("init");
+          }
+        });
       });
     },
     //取消
@@ -123,7 +139,7 @@ export default {
         menus: "",
         status: 1,
       };
-      this.$refs.tree.setCheckedKeys([])
+      this.$refs.tree.setCheckedKeys([]);
     },
     //获取一条数据
     getOne(id) {
@@ -146,27 +162,26 @@ export default {
     edit() {
       //将数组转为数组字符串
       this.getCheckedKeys();
-      reqRoleedit(this.user).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+      this.checkProps().then(() => {
+        reqRoleedit(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-          if(this.user.id == this.userInfo.roleid){
-            this.changeUser({})
-            this.$router.push("/login")
-            return
+            if (this.user.id == this.userInfo.roleid) {
+              this.changeUser({});
+              this.$router.push("/login");
+              return;
+            }
+
+            this.cancel();
+
+            this.$emit("init");
           }
-
-          this.cancel();
-
-          this.$emit("init");
-        }
+        });
       });
     },
-    
   },
-  mounted(){
-    
-  }
+  mounted() {},
 };
 </script>
 

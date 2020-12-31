@@ -110,7 +110,7 @@
   <script>
 import E from "wangeditor";
 import { mapActions, mapGetters } from "vuex";
-import { sucalert } from "../../../utils/alert";
+import { sucalert, warnalert } from "../../../utils/alert";
 import {
   reqcatelist,
   reqspecslist,
@@ -150,6 +150,53 @@ export default {
     }),
   },
   methods: {
+    //封装的验证
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.first_cateid === "") {
+          warnalert("一级分类不能为空");
+          return;
+        }
+
+        if (this.user.second_cateid === "") {
+          warnalert("二级分类不能为空");
+          return;
+        }
+        if (this.user.goodsname === "") {
+          warnalert("商品名称不能为空");
+          return;
+        }
+
+        if (this.user.price === "") {
+          warnalert("商品价格不能为空");
+          return;
+        }
+
+        if (this.user.market_price === "") {
+          warnalert("商品市场价格不能为空");
+          return;
+        }
+
+        if (!this.user.img) {
+          warnalert("请上传图片");
+          return;
+        }
+        if (this.user.specsid === "") {
+          warnalert("商品规格不能为空");
+          return;
+        }
+
+        if (this.user.specsattr.length === 0) {
+          warnalert("请选择规格属性");
+          return;
+        }
+        if (this.editor.txt.html() == "") {
+          warnalert("请输入商品描述");
+          return;
+        }
+        resolve();
+      });
+    },
     ...mapActions({
       reqCateList: "cate/reqList",
       reqSpecsList: "specs/reqList",
@@ -219,25 +266,27 @@ export default {
       this.showSpecsAttr = [];
     },
     add() {
-      this.user.description = this.editor.txt.html();
+      this.checkProps().then(() => {
+        this.user.description = this.editor.txt.html();
 
-      let data = {
-        ...this.user,
-        specsattr: JSON.stringify(this.user.specsattr),
-      };
+        let data = {
+          ...this.user,
+          specsattr: JSON.stringify(this.user.specsattr),
+        };
 
-      reqgoodsAdd(data).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+        reqgoodsAdd(data).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-          this.empty();
+            this.empty();
 
-          this.cancel();
+            this.cancel();
 
-          this.reqList();
+            this.reqList();
 
-          this.reqTotal();
-        }
+            this.reqTotal();
+          }
+        });
       });
     },
     getone(id) {
@@ -261,22 +310,24 @@ export default {
       });
     },
     update() {
-      this.user.description = this.editor.txt.html();
+      this.checkProps().then(() => {
+        this.user.description = this.editor.txt.html();
 
-      let data = {
-        ...this.user,
-        specsattr: JSON.stringify(this.user.specsattr),
-      };
-      reqgoodsUpdate(data).then((res) => {
-        if (res.data.code === 200) {
-          this.cancel();
+        let data = {
+          ...this.user,
+          specsattr: JSON.stringify(this.user.specsattr),
+        };
+        reqgoodsUpdate(data).then((res) => {
+          if (res.data.code === 200) {
+            this.cancel();
 
-          this.empty();
+            this.empty();
 
-          sucalert(res.data.msg);
+            sucalert(res.data.msg);
 
-          this.reqList();
-        }
+            this.reqList();
+          }
+        });
       });
     },
   },

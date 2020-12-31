@@ -59,8 +59,12 @@
 </template>
 
 <script>
-import { sucalert } from "../../../utils/alert";
-import { reqspecsAdd, reqspecsDetail,reqspecsUpdate } from "../../../utils/http";
+import { sucalert, warnalert } from "../../../utils/alert";
+import {
+  reqspecsAdd,
+  reqspecsDetail,
+  reqspecsUpdate,
+} from "../../../utils/http";
 import { mapActions, mapGetters } from "vuex";
 export default {
   props: ["info"],
@@ -78,6 +82,15 @@ export default {
     ...mapGetters({}),
   },
   methods: {
+    checkProps() {
+      return new Promise((resolve, reject) => {
+        if (this.user.specsname === "") {
+          warnalert("规格名称不能为空");
+          return;
+        }
+        resolve();
+      });
+    },
     ...mapActions({
       reqlist: "specs/reqList",
 
@@ -85,21 +98,23 @@ export default {
     }),
     //添加
     add() {
-      this.user.attrs = JSON.stringify(this.attrsArr.map((item) => item.value));
+      this.checkProps().then(() => {
+        this.user.attrs = JSON.stringify(
+          this.attrsArr.map((item) => item.value)
+        );
+        reqspecsAdd(this.user).then((res) => {
+          if (res.data.code === 200) {
+            sucalert(res.data.msg);
 
-      console.log(this.user.attrs);
-      reqspecsAdd(this.user).then((res) => {
-        if (res.data.code === 200) {
-          sucalert(res.data.msg);
+            this.empty();
 
-          this.empty();
+            this.cancel();
 
-          this.cancel();
+            this.reqlist();
 
-          this.reqlist();
-
-          this.reqtotal();
-        }
+            this.reqtotal();
+          }
+        });
       });
     },
     //删除
@@ -112,8 +127,8 @@ export default {
     },
     // 取消
     cancel() {
-      if(!this.info.isadd){
-        this.empty()
+      if (!this.info.isadd) {
+        this.empty();
       }
       this.info.isshow = false;
     },
@@ -139,19 +154,22 @@ export default {
     },
     //更新
     update() {
-      this.user.attrs = JSON.stringify(this.attrsArr.map(item=>item.value))
-      reqspecsUpdate(this.user).then(res=>{
-        if(res.data.code===200){
-          this.empty()
+      this.checkProps().then(() => {
+        this.user.attrs = JSON.stringify(
+          this.attrsArr.map((item) => item.value)
+        );
+        reqspecsUpdate(this.user).then((res) => {
+          if (res.data.code === 200) {
+            this.empty();
 
-          this.cancel()
+            this.cancel();
 
-          sucalert(res.data.msg)
+            sucalert(res.data.msg);
 
-          this.reqlist()
-        }
-      })
-
+            this.reqlist();
+          }
+        });
+      });
     },
   },
 };
